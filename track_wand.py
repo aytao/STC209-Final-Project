@@ -12,34 +12,32 @@ After having launch vicon_bridge (roslaunch vicon.launch):
 -------------------------------------------------------------------------'''
 
 import rospy
+import time
 from geometry_msgs.msg import TransformStamped
-from ViconObjectVisualization import MarkersVisualization
 import numpy as np
 
 class WandTracker():
     def __init__(self):
-        self.pose = np.array([[0, 0, 0]])
-        self.wand_tracker_sub = rospy.Subscriber("vicon/Wand/Wand", TransformStamped, self.callback_vicon)
+        self.wand_pose = np.array([[0, 0, 0]])
+        self.wand_tracker_sub = rospy.Subscriber("vicon/Wand/Wand", TransformStamped, self.callback_vicon_wand)
+        self.other_wand_tracker_sub = rospy.Subscriber("vicon/Other_Wand/Other_Wand", TransformStamped, self.callback_vicon_other_wand)
         rospy.init_node("wand_tracker", anonymous=True)
         self.rate = rospy.Rate(100)
 
-    def callback_vicon(self, data):
-        self.pose = np.array([[data.transform.translation.x, data.transform.translation.y, data.transform.translation.z]])
+    def callback_vicon_wand(self, data):
+        self.wand_pose = np.array([data.transform.translation.x, data.transform.translation.y, data.transform.translation.z])
         #print(self.pose)
+    def callback_vicon_other_wand(self, data):
+        self.other_wand_pose = np.array([data.transform.translation.x, data.transform.translation.y, data.transform.translation.z])
+
+    def distance(self):
+        return np.linalg.norm(self.other_wand_pose - self.wand_pose)
 
 if __name__ == '__main__':
-    # domain parameters
-    xmax = 2;   xmin = -2
-    zmax = 2.5; zmin = 0
-    domain = np.transpose(np.array([[xmin, xmax, xmax, xmin, xmin],
-                                    [zmin, zmin, zmax, zmax, zmin]]))
-    # initialize visualization
-    vicon_objects = np.transpose(np.array([[0], [1]]))
-    visual = MarkersVisualization(domain, vicon_objects)
-
     # track the wand
     wand = WandTracker()
 
     while not rospy.is_shutdown():
-        visual.update_objects(wand.pose)
+        #time.sleep(1)
+        print(wand.wand_pose, wand.other_wand_pose, wand.distance())
     rospy.spin()
