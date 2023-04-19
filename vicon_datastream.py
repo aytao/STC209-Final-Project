@@ -1,4 +1,4 @@
-from math import atan2, sqrt, pi
+from pythonosc import udp_client
 from vicon_dssdk import ViconDataStream
 from visualize_rotation import RotationVisualization
 
@@ -10,31 +10,34 @@ left_root_segment_name = 'Wand'
 right_subject_name = 'Other_Wand'
 right_root_segment_name = 'Other_Wand'
 
-
+vicon_host = '192.168.1.36:801'
+max_host, max_port = '127.0.0.1', 7000
  
-client = ViconDataStream.Client()
+vicon_client = ViconDataStream.Client()
+max_udp_client = udp_client.SimpleUDPClient(max_host, max_port)
 # frames = []
  
 print( 'Connecting' )
-while not client.IsConnected():
+while not vicon_client.IsConnected():
     print( '.' )
-    client.Connect( '192.168.1.36:801' )
+    vicon_client.Connect( '192.168.1.36:801' )
 
-client.EnableSegmentData()
+vicon_client.EnableSegmentData()
 
 
 def print_if_there(res):
     pos, o = res
     if not o:
-        print (pos)
+        print(pos)
 
 try:
-    while client.IsConnected():
-        if client.GetFrame():
-            rot, o = client.GetSegmentGlobalRotationEulerXYZ(left_subject_name, left_root_segment_name)
+    while vicon_client.IsConnected():
+        if vicon_client.GetFrame():
+            rot, o = vicon_client.GetSegmentGlobalRotationEulerXYZ(left_subject_name, left_root_segment_name)
             if o:
                 continue
             visual.update_rotation(rot)
+            max_udp_client.send_message("/rotation", rot)
             # print(rot)
 
             # frames.append(client.GetFrameNumber())
@@ -46,5 +49,5 @@ except ViconDataStream.DataStreamException as e:
     print( 'Error', e )
  
 
-subject_names = client.GetSubjectNames()
+subject_names = vicon_client.GetSubjectNames()
 assert left_subject_name in subject_names and right_subject_name in subject_names
