@@ -34,10 +34,12 @@ try:
     while vicon_client.IsConnected():
         if vicon_client.GetFrame():
             rot, o = vicon_client.GetSegmentGlobalRotationEulerXYZ(left_subject_name, left_root_segment_name)
+            pos, o = vicon_client.GetSegmentGlobalTranslation(left_subject_name, left_root_segment_name)
             if o:
                 continue
             visual.update_rotation(rot)
             max_udp_client.send_message("/rotation", rot)
+            max_udp_client.send_message("/position", pos)
             # print(rot)
 
             # frames.append(client.GetFrameNumber())
