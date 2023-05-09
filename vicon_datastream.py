@@ -1,10 +1,7 @@
 from pythonosc import udp_client
 from vicon_dssdk import ViconDataStream
-from visualize_rotation import RotationVisualization
 from math import pi
 from smoother import BufferSmoother
-
-# visual = RotationVisualization()
 
 left_subject_name = 'Wand'
 left_root_segment_name = 'Wand'
@@ -55,7 +52,7 @@ try:
       
       if o:
           continue
-      # visual.update_rotation(rot)
+      
       max_udp_client.send_message("/rotation", rot)
       max_udp_client.send_message("/position", pos)
  
